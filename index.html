@@ -1,0 +1,1038 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HEEZA SYSTEM</title>
+<meta name="description" content="HEEZA SYSTEM — profit and loss tracking for sales, products, and expenses.">
+<meta name="theme-color" content="#0E6B58">
+<meta property="og:title" content="HEZA SYSTEM">
+<meta property="og:description" content="Profit and loss tracking for sales, products, and expenses.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Ccircle cx='64' cy='64' r='62' fill='%2300a65a'/%3E%3Cg fill='none' stroke='%2396dfa0' stroke-width='7' stroke-linecap='round' stroke-linejoin='round' opacity='.75'%3E%3Cpath d='M48 33c-12 0-14 8-14 19v5c0 8-2 12-10 17 8 5 10 9 10 17v5c0 11 2 19 14 19M80 33c12 0 14 8 14 19v5c0 8 2 12 10 17-8 5-10 9-10 17v5c0 11-2 19-14 19M54 46v56m20-56v56M54 74h20'/%3E%3C/g%3E%3Ccircle cx='101' cy='99' r='6' fill='%2396dfa0'/%3E%3C/svg%3E">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Ccircle cx='64' cy='64' r='62' fill='%2300a65a'/%3E%3Cg fill='none' stroke='%2396dfa0' stroke-width='7' stroke-linecap='round' stroke-linejoin='round' opacity='.75'%3E%3Cpath d='M48 33c-12 0-14 8-14 19v5c0 8-2 12-10 17 8 5 10 9 10 17v5c0 11 2 19 14 19M80 33c12 0 14 8 14 19v5c0 8 2 12 10 17-8 5-10 9-10 17v5c0 11-2 19-14 19M54 46v56m20-56v56M54 74h20'/%3E%3C/g%3E%3Ccircle cx='101' cy='99' r='6' fill='%2396dfa0'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+body{margin:0}
+[hidden]{display:none!important}
+/* Layout: one working page. Period chips, four figures (net result first), then tabs for Summary, Money, Products, Expenses. Each entry tab has an add form above its list. */
+:root{
+  --bg:#F2F5F3; --surface:#FFFFFF; --ink:#13201B; --muted:#5A6B64; --line:#D9E1DD;
+  --accent:#0E6B58; --accent-ink:#FFFFFF; --accent-soft:#DDEFE9;
+  --bad:#B3261E; --bad-soft:#F9DDD9; --warn:#9A5200; --warn-soft:#FBE9CF;
+  --display:"Inter","Helvetica Neue",Arial,sans-serif;
+  --body:"Inter","Helvetica Neue",Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1512; --surface:#16201C; --ink:#E6EEEA; --muted:#93A59D; --line:#2A3731;
+  --accent:#4FC3A5; --accent-ink:#06251D; --accent-soft:#17342C;
+  --bad:#F08A82; --bad-soft:#3D1B18; --warn:#E3A24B; --warn-soft:#3A2A10; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1512; --surface:#16201C; --ink:#E6EEEA; --muted:#93A59D; --line:#2A3731;
+  --accent:#4FC3A5; --accent-ink:#06251D; --accent-soft:#17342C;
+  --bad:#F08A82; --bad-soft:#3D1B18; --warn:#E3A24B; --warn-soft:#3A2A10; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding-block:20px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.background-art{position:fixed;left:50%;top:50%;z-index:0;width:min(1200px,125vw);height:min(980px,125vh);color:var(--accent);opacity:.14;pointer-events:none;transform:translate(-50%,-50%);animation:art-scene 36s ease-in-out infinite alternate}
+.background-art .float{transform-box:fill-box;transform-origin:center;animation:art-float 18s ease-in-out infinite alternate}
+.background-art .trend{stroke-dasharray:12 14;animation:art-drift 32s linear infinite}
+.background-art .coin{transform-box:fill-box;transform-origin:center;animation:art-pulse 7s ease-in-out infinite alternate}
+.wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.cur{font:500 .72em var(--mono);color:var(--muted);margin-right:.35em;letter-spacing:.04em}
+.neg{color:var(--bad)}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.top{display:flex;align-items:center;min-width:0}
+.brand-stack{display:flex;flex-direction:column;align-items:flex-start;gap:12px;min-width:0}
+.brand{display:flex;align-items:center;gap:14px;min-width:0}
+.brand-mark{position:relative;width:110px;height:110px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#00b366,#00a65a);border:2px solid rgba(23,176,108,.8);box-shadow:0 16px 30px rgba(12,122,95,.18);flex-shrink:0;animation:brand-glow 4s ease-in-out infinite}
+.brand-mark svg{width:100%;height:100%;display:block;color:rgba(150,223,160,.8)}
+.brand-mark .brand-ring{stroke-dasharray:260 344;stroke-linecap:round;animation:brand-ring 8s linear infinite}
+.brand-mark .brand-symbol{transform-box:fill-box;transform-origin:center;animation:brand-symbol 4s ease-in-out infinite}
+.brand-name{font-family:var(--display);font-size:clamp(1.9rem,3vw,3rem);font-weight:800;letter-spacing:-.09em;line-height:.8;text-transform:uppercase;color:var(--accent);text-shadow:0 0 0 rgba(0,0,0,0);animation:brand-name-in .8s cubic-bezier(.2,.8,.2,1) .15s both}
+header.top h1{font-size:30px;font-weight:700;letter-spacing:-.01em}
+header.top p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.top-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.language-control{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px;font-weight:600}
+.language-control select{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 10px}
+.theme-toggle{display:inline-grid;place-items:center;width:38px;height:38px;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}
+.theme-toggle:hover{border-color:var(--accent);color:var(--accent)}
+.theme-toggle svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.theme-toggle .sun-icon{display:none}
+:root[data-theme="dark"] .theme-toggle .moon-icon{display:none}
+:root[data-theme="dark"] .theme-toggle .sun-icon{display:block}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:9px 14px;font-weight:500}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.small{padding:4px 10px;font-size:13px}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.note{background:var(--warn-soft);color:var(--warn);border-radius:8px;padding:10px 14px;font-size:13px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.note[hidden]{display:none}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:5px 13px;font-size:13px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.figures{display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr;gap:12px}
+.fig{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.fig.lead{border-color:var(--accent);background:var(--accent-soft)}
+.fig.lead.loss{border-color:var(--bad);background:var(--bad-soft)}
+.fig .lab{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.fig .val{font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:-.02em;margin-top:4px;overflow-wrap:anywhere}
+.fig.lead .val{font-size:34px}
+.fig .sub{font-size:13px;color:var(--muted);margin-top:2px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;font-weight:600;color:var(--muted);margin-bottom:-1px;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;min-width:0}
+.panel h2{font-size:17px;font-weight:700}
+.hint{font-size:12.5px;color:var(--muted);margin:2px 0 12px}
+.assign-row{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(180px,1fr) auto;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.assign-row:last-child{border-bottom:0}
+.assign-row .field{flex-direction:row;align-items:center;gap:8px}
+.assign-row .field span{white-space:nowrap}
+.credit-row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(120px,.8fr) minmax(180px,1fr) auto;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line)}
+.credit-row:last-child{border-bottom:0}
+.credit-customer .sm{display:block;font-size:12.5px;color:var(--muted)}
+.credit-balance{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--accent);white-space:nowrap}
+form{display:flex;flex-direction:column;gap:12px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+#credit-details{grid-column:1/-1}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:13px;font-weight:600}
+.field input,.field select{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:9px 11px;width:100%;min-width:0}
+.field input[type=checkbox]{width:auto}
+.preview{background:var(--accent-soft);border-radius:8px;padding:10px 14px;font-size:14px;display:flex;flex-wrap:wrap;gap:4px 18px;align-items:baseline}
+.preview b{font-family:var(--display);font-size:18px}
+.preview.loss{background:var(--bad-soft)}
+.err{color:var(--bad);font-size:13px;min-height:1em}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.cols,.row{display:grid;gap:8px 14px;align-items:center;padding:11px 16px}
+.cols{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--line);padding-block:9px;font-weight:500}
+.row{border-bottom:1px solid var(--line);font-size:14px}
+.row:last-child{border-bottom:0}
+.row .r,.cols .r{text-align:right}
+.row .sm{display:block;font-size:12.5px;color:var(--muted)}
+.row .nm{min-width:0;overflow-wrap:anywhere}
+.row .nm b{font-weight:600}
+.cc-money{grid-template-columns:minmax(0,1.5fr) minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) auto}
+.cc-prod{grid-template-columns:minmax(0,1.5fr) minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr) auto}
+.cc-exp{grid-template-columns:minmax(0,1.5fr) minmax(0,1.5fr) minmax(0,1fr) auto}
+.empty{padding:30px 20px;text-align:center;color:var(--muted)}
+.empty h3{color:var(--ink);font-size:18px;margin-bottom:6px}
+.empty p{margin:0 auto 14px;max-width:46ch}
+.chart{overflow-x:auto}
+.chart svg{display:block;width:100%;min-width:420px;height:auto}
+.chart .gl{stroke:var(--line);stroke-width:1}
+.chart .zero{stroke:var(--muted);stroke-width:1}
+.chart .ax{fill:var(--muted);font:11px var(--mono)}
+.chart .vl{fill:var(--ink);font:500 11px var(--mono)}
+.chart .bar{fill:var(--accent);opacity:.45}
+.chart .bar.now{opacity:1}
+.chart .bar.neg{fill:var(--bad)}
+.tbl{overflow-x:auto;margin-top:12px}
+table{border-collapse:collapse;width:100%;min-width:480px;font-size:14px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:500}
+tfoot td{font-weight:600}
+.hday{display:flex;justify-content:space-between;gap:4px 16px;flex-wrap:wrap;padding:10px 16px;background:var(--accent-soft);border-bottom:1px solid var(--line);font-size:13px}
+.hday b{font-family:var(--display);font-size:14px}
+.hrow{display:grid;grid-template-columns:78px minmax(0,1fr) auto auto;gap:4px 12px;padding:10px 16px;border-bottom:1px solid var(--line);font-size:14px;align-items:baseline}
+.hrow .tp{font-size:11.5px;font-weight:600;border-radius:99px;padding:2px 9px;background:var(--line);color:var(--muted);text-align:center}
+.hrow .tx{min-width:0;overflow-wrap:anywhere}
+.hrow .tx .sm{display:block;font:12.5px var(--mono);color:var(--muted)}
+.hrow .rs{text-align:right}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;z-index:30;font-size:14px;max-width:90vw}
+.toast[hidden]{display:none}
+@media (max-width:820px){.figures{grid-template-columns:1fr 1fr}.fig.lead{grid-column:1 / -1}}
+@media (max-width:620px){
+  .background-art{width:125vw;height:110vh;opacity:.11}
+  .topbar{align-items:flex-start;flex-direction:column}
+  .assign-row{grid-template-columns:1fr}
+  .credit-row{grid-template-columns:minmax(0,1fr) auto}
+  .credit-customer{grid-column:1}
+  .credit-balance{grid-column:2;grid-row:1}
+  .credit-row .field,.credit-row .btn{grid-column:1/-1}
+  .grid{grid-template-columns:1fr 1fr}
+  .cols{display:none}
+  .row{grid-template-columns:minmax(0,1fr) auto !important;grid-template-areas:"a b" "c c" "d d"}
+  .row>*:nth-child(1){grid-area:a}.row>*:nth-child(2){grid-area:c}
+  .row>.res{grid-area:b;text-align:right}
+  .row>.act{grid-area:d}
+  .row .r{text-align:left}
+  .figures{grid-template-columns:1fr}
+}
+@media (max-width:380px){.grid{grid-template-columns:1fr}}
+@keyframes art-float{from{transform:translate3d(0,8px,0)}to{transform:translate3d(-18px,-14px,0)}}
+@keyframes art-drift{to{stroke-dashoffset:-208}}
+@keyframes art-pulse{from{transform:translateY(0)}to{transform:translateY(-9px)}}
+@keyframes art-scene{from{transform:translate(-50%,-50%) scale(1)}to{transform:translate(-50%,-50%) scale(1.06)}}
+@keyframes brand-glow{0%,100%{box-shadow:0 16px 30px rgba(12,122,95,.18),0 0 0 0 rgba(23,176,108,0)}50%{box-shadow:0 18px 34px rgba(12,122,95,.28),0 0 0 7px rgba(23,176,108,.1)}}
+@keyframes brand-ring{to{stroke-dashoffset:-604}}
+@keyframes brand-symbol{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.025)}}
+@keyframes brand-name-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.background-art,.background-art .float,.background-art .trend,.background-art .coin,.brand-mark,.brand-mark .brand-ring,.brand-mark .brand-symbol,.brand-name{animation:none}}
+</style>
+
+</head>
+<body>
+<svg class="background-art" viewBox="0 0 760 620" fill="none" aria-hidden="true" focusable="false">
+  <g class="float">
+    <circle cx="542" cy="296" r="220" stroke="currentColor" stroke-width="2"/>
+    <circle cx="542" cy="296" r="174" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 12"/>
+    <path d="M92 470h552M128 438V205" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+    <path class="trend" d="m160 392 102-79 82 34 88-112 74 31 94-109" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="m570 158 39-5-7 39" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="174" y="426" width="46" height="44" rx="7" fill="currentColor" opacity=".2"/>
+    <rect x="278" y="408" width="46" height="62" rx="7" fill="currentColor" opacity=".27"/>
+    <rect x="382" y="382" width="46" height="88" rx="7" fill="currentColor" opacity=".34"/>
+    <rect x="486" y="348" width="46" height="122" rx="7" fill="currentColor" opacity=".43"/>
+  </g>
+  <g class="coin">
+    <circle cx="160" cy="142" r="28" stroke="currentColor" stroke-width="4"/>
+    <path d="M160 126v32m-10-24c0-8 20-8 20 0s-20 8-20 16 20 8 20 0" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <g class="coin" style="animation-delay:-3.5s">
+    <circle cx="625" cy="490" r="26" stroke="currentColor" stroke-width="4"/>
+    <path d="M625 475v30m-9-22c0-7 18-7 18 0s-18 7-18 15 18 7 18 0" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  </g>
+</svg>
+<div class="wrap">
+  <header class="topbar">
+    <div class="top">
+      <div class="brand-stack" aria-label="HEEZA SYSTEM">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="110" cy="110" r="100" fill="none" stroke="currentColor" stroke-width="2" opacity=".3"/>
+              <circle class="brand-ring" cx="110" cy="110" r="96" fill="none" stroke="currentColor" stroke-width="6" opacity=".28"/>
+              <g class="brand-symbol">
+              <path d="M83 42C65 42 61 53 61 69V77C61 89 58 96 48 103C58 110 61 117 61 129V137C61 153 65 164 83 164M137 42C155 42 159 53 159 69V77C159 89 162 96 172 103C162 110 159 117 159 129V137C159 153 155 164 137 164M88 61V145M132 61V145M88 103H132" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="168" cy="160" r="10" fill="currentColor"/>
+              </g>
+            </svg>
+          </div>
+          <div class="brand-name">HEEZA SYSTEM</div>
+        </div>
+      </div>
+    </div>
+    <div class="top-controls">
+      <label class="language-control" for="language">
+        <span>Language</span>
+        <select id="language" aria-label="Language">
+          <option value="en">English</option>
+          <option value="fr">Français</option>
+          <option value="rw">Kinyarwanda</option>
+          <option value="sw">Kiswahili</option>
+        </select>
+      </label>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle light and dark mode" aria-pressed="false" title="Switch to dark mode">
+        <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></svg>
+        <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>
+      </button>
+    </div>
+  </header>
+  <div class="note" id="note" hidden></div>
+  <div class="chips" id="periods" role="group" aria-label="Period">
+    <button class="chip" data-p="today" aria-pressed="false">Today</button>
+    <button class="chip" data-p="month" aria-pressed="true">This month</button>
+    <button class="chip" data-p="year" aria-pressed="false">This year</button>
+    <button class="chip" data-p="all" aria-pressed="false">All time</button>
+  </div>
+  <section class="figures" id="figures" aria-label="Totals for the period"></section>
+  <div class="tabs" role="tablist" id="tabs">
+    <button class="tab" role="tab" data-t="summary" aria-selected="true">Summary</button>
+    <button class="tab" role="tab" data-t="currency" aria-selected="false">Selling money</button>
+    <button class="tab" role="tab" data-t="products" aria-selected="false">Selling products</button>
+    <button class="tab" role="tab" data-t="expenses" aria-selected="false">Expenses</button>
+    <button class="tab" role="tab" data-t="history" aria-selected="false">History</button>
+  </div>
+  <div id="body"></div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+  var $=function(s){return document.querySelector(s)};
+  var NOW=new Date();
+  var FR={
+    'HEEZA SYSTEM':'HEEZA SYSTEM','Language':'Langue',
+    'Toggle light and dark mode':'Basculer entre le mode clair et sombre','Switch to light mode':'Passer au mode clair','Switch to dark mode':'Passer au mode sombre',
+    'Today':'Aujourd’hui','This month':'Ce mois-ci','This year':'Cette année','All time':'Tout',
+    'Period':'Période','Totals for the period':'Totaux de la période',
+    'Summary':'Résumé','Selling money':'Vente de devises','Selling products':'Vente de produits','Expenses':'Dépenses','History':'Historique',
+    'Person':'Personne','Person name':'Nom de la personne','Enter the person’s name.':'Saisissez le nom de la personne.',
+    'Individual and combined totals':'Totaux individuels et combinés','Total profit/loss by person for the selected period.':'Profit ou perte par personne pour la période sélectionnée.',
+    'Individual totals':'Totaux individuels','Combined total':'Total combiné','Net profit / loss':'Profit / perte net(te)',
+    'No assigned records in this period.':'Aucune donnée attribuée pour cette période.',
+    'Unassigned records':'Données non attribuées','Assign a person to each saved record that has no owner.':'Attribuez une personne à chaque donnée enregistrée sans responsable.','Included in combined total':'Inclus dans le total combiné',
+    'Assign':'Attribuer','Unassigned':'Non attribué','Person assigned':'Personne attribuée',
+    'Enter a person name to assign this record.':'Saisissez un nom pour attribuer cette donnée.',
+    'Could not assign person. ':'Impossible d’attribuer la personne. ','Invalid record type.':'Type de donnée invalide.','Record not found.':'Donnée introuvable.',
+    'Buyer name':'Nom du client','Sell on credit':'Vendre à crédit','Paid now (RWF)':'Payé maintenant (RWF)',
+    'Outstanding credit':'Crédit restant','Amount owed':'Montant dû','Record repayment':'Enregistrer un remboursement',
+    'Repayment amount (RWF)':'Montant du remboursement (RWF)','No outstanding balances.':'Aucun solde impayé.',
+    'Enter buyer name.':'Saisissez le nom du client.','Enter an amount greater than zero.':'Saisissez un montant supérieur à zéro.',
+    'Amount exceeds outstanding balance.':'Le montant dépasse le solde restant dû.',
+    'Paid amount cannot exceed sale total.':'Le montant payé ne peut pas dépasser le total de la vente.',
+    'Paid amount cannot be negative.':'Le montant payé ne peut pas être négatif.',
+    'Enter upfront payment, or leave 0 for full credit.':'Saisissez le paiement initial, ou laissez 0 pour tout mettre à crédit.',
+    'Record partial or full repayments. Repayments reduce the balance but do not count as new profit.':'Enregistrez les remboursements partiels ou complets. Ils réduisent le solde sans être comptés comme un nouveau bénéfice.',
+    'Total outstanding: ':'Total restant dû : ',
+    'Repayment reduces outstanding credit; it is not new profit':'Le remboursement réduit le crédit restant et ne constitue pas un nouveau bénéfice',
+    'Credit sale':'Vente à crédit','Paid now':'Payé maintenant','Credit balance':'Solde à crédit',
+    'Credit sale to':'Vente à crédit à','Repayment received':'Remboursement reçu','Repayment':'Remboursement',
+    'Could not record repayment. ':'Impossible d’enregistrer le remboursement. ',
+    'Net loss':'Perte nette','Net profit':'Profit net','After expenses':'Après dépenses',
+    'sales':'ventes','Money spent':'Argent dépensé',
+    'Net profit each month':'Profit net par mois',
+    'Profit from money and products, minus expenses. Red bars are months with a loss.':'Profit sur les devises et les produits, moins les dépenses. Les barres rouges indiquent une perte.',
+    'Month':'Mois','Money':'Devises','Products':'Produits','Net':'Net','Last 6 months':'6 derniers mois',
+    'Record a currency sale':'Enregistrer une vente de devises',
+    'Profit = (selling rate − buying rate) × amount − fees.':'Profit = (taux de vente − taux d’achat) × montant − frais.',
+    'Date':'Date','Currency':'Devise','Amount sold':'Montant vendu',
+    'Buying rate (RWF per 1)':'Taux d’achat (RWF par unité)','Selling rate (RWF per 1)':'Taux de vente (RWF par unité)',
+    'Fees (RWF, optional)':'Frais (RWF, facultatif)',
+    'Record a product sale':'Enregistrer une vente de produit',
+    'Profit = selling price − cost price.':'Profit = prix de vente − prix de revient.',
+    'Product':'Produit','Cost price per item (RWF)':'Coût par article (RWF)',
+    'Selling price per item (RWF)':'Prix de vente par article (RWF)',
+    'Record an expense':'Enregistrer une dépense',
+    'Transport, rent, airtime, salaries, fees and anything else you spend to run the business.':'Transport, loyer, crédit téléphonique, salaires, frais et autres dépenses liées à l’activité.',
+    'Category':'Catégorie','Description':'Description','Amount (RWF)':'Montant (RWF)',
+    'Transport':'Transport','Rent':'Loyer','Airtime / Internet':'Téléphone / Internet','Salaries':'Salaires','Fees / Taxes':'Frais / Taxes','Other':'Autre',
+    'Save':'Enregistrer','You paid':'Vous avez payé','You receive':'Vous recevez','Loss':'Perte','Profit':'Profit',
+    'Enter the amount and both rates to see your profit.':'Saisissez le montant et les deux taux pour voir votre profit.',
+    'Total cost':'Coût total','Total sales':'Ventes totales','on cost':'du coût',
+    'Enter the cost and selling price to see your profit.':'Saisissez le coût et le prix de vente pour voir votre profit.',
+    'Click again to delete':'Cliquez à nouveau pour supprimer','Delete':'Supprimer',
+    'Loading your records…':'Chargement de vos données…',
+    'No currency sales yet':'Aucune vente de devises','Record your first sale above. Your profit is the selling rate minus the buying rate, times the amount.':'Enregistrez votre première vente ci-dessus. Votre profit correspond à la différence entre les taux de vente et d’achat, multipliée par le montant.',
+    'No product sales yet':'Aucune vente de produits','Record your first sale above. Your profit is the selling price minus the cost price.':'Enregistrez votre première vente ci-dessus. Votre profit correspond à la différence entre le prix de vente et le coût.',
+    'No expenses yet':'Aucune dépense','Add what you spend on transport, rent, airtime and salaries so your net profit is accurate.':'Ajoutez vos frais de transport, de loyer, de téléphone et de salaires pour calculer votre profit net.',
+    'Nothing in this period':'Aucune donnée pour cette période',
+    'Sale':'Vente','Rates (RWF)':'Taux (RWF)','Cost':'Coût','Profit / loss':'Profit / perte','Fees':'Frais',
+    'Cost → price':'Coût → prix','Sales':'Ventes','Expense':'Dépense','Amount':'Montant',
+    'Pick a longer period above to see older records':'Choisissez une période plus longue ci-dessus pour voir les anciennes données',
+    'sold':'vendus','No history yet':'Aucun historique','Every sale and expense you save will appear here with the calculation behind it, grouped by day with a running total.':'Chaque vente et dépense enregistrée apparaîtra ici avec son calcul, regroupée par jour et accompagnée d’un total cumulé.',
+    'All saved records, newest day first. Each line shows how its result was calculated. The running total is your net profit or loss from your first record up to the end of that day. Not affected by the period buttons. Delete removes one record. Delete all history clears everything and cannot be undone.':'Toutes les données enregistrées, du jour le plus récent au plus ancien. Chaque ligne présente le calcul du résultat. Le total cumulé correspond au profit ou à la perte nette depuis votre première donnée jusqu’à la fin de la journée. Les boutons de période ne le modifient pas. Supprimer retire une donnée. La suppression de tout l’historique est irréversible.',
+    'Click again to delete all':'Cliquez à nouveau pour tout supprimer','records':'données','Cancel':'Annuler','Delete all history':'Supprimer tout l’historique',
+    'Money spent, subtracted from profit':'Dépense soustraite du profit','Day result':'Résultat du jour','Running total':'Total cumulé',
+    'Pick the date.':'Choisissez la date.','Enter the currency, for example USD.':'Saisissez la devise, par exemple USD.',
+    'Enter the amount you sold.':'Saisissez le montant vendu.','Enter your buying rate.':'Saisissez votre taux d’achat.',
+    'Enter your selling rate.':'Saisissez votre taux de vente.','Enter the product name.':'Saisissez le nom du produit.',
+    'Enter the quantity sold.':'Saisissez la quantité vendue.','Enter the cost price per item.':'Saisissez le coût par article.',
+    'Enter the selling price per item.':'Saisissez le prix de vente par article.','Enter the amount spent.':'Saisissez le montant dépensé.',
+    'Saved':'Enregistré','Deleted':'Supprimé','All history deleted':'Tout l’historique a été supprimé',
+    'Could not save. ':'Impossible d’enregistrer. ','Could not delete. ':'Impossible de supprimer. ',
+    'Could not delete everything. ':'Impossible de tout supprimer. ','Try again.':'Réessayez.',
+    'Your saved records cannot be reached yet. Check your connection.':'Vos données enregistrées sont momentanément inaccessibles. Vérifiez votre connexion.',
+    'Saved records stopped updating. Reload the page to reconnect.':'La mise à jour des données enregistrées a échoué. Rechargez la page pour vous reconnecter.',
+    'amounts in RWF':'montants en RWF','Net profit per month, last six months':'Profit net par mois, six derniers mois',
+    'on cost':'du coût','fees':'frais','saved':'enregistrées'
+  };
+  var RW={
+    "HEEZA SYSTEM":"HEEZA SYSTEM","Language":"Ururimi",
+    "Toggle light and dark mode":"Hindura hagati y'uburyo bw'umucyo n'umwijima","Switch to light mode":"Hindura ujye ku mucyo","Switch to dark mode":"Hindura ujye ku mwijima",
+    "Today":"Uyu munsi","This month":"Uku kwezi","This year":"Uyu mwaka","All time":"Igihe cyose",
+    "Period":"Igihe","Totals for the period":"Igiteranyo cy'iki gihe",
+    "Summary":"Incamake","Selling money":"Igurisha ry'amafaranga","Selling products":"Igurisha ry'ibicuruzwa","Expenses":"Ibyakoreshejwe","History":"Amateka",
+    "Person":"Umuntu","Person name":"Izina ry'umuntu","Enter the person’s name.":"Andika izina ry'umuntu.",
+    "Individual and combined totals":"Inyungu za buri muntu n'izishyizwe hamwe","Total profit/loss by person for the selected period.":"Inyungu cyangwa igihombo cya buri muntu mu gihe cyatoranyijwe.",
+    "Individual totals":"Inyungu za buri muntu","Combined total":"Igiteranyo cyose hamwe","Net profit / loss":"Inyungu / igihombo",
+    "No assigned records in this period.":"Nta makuru yagenewe umuntu ari muri iki gihe.",
+    "Unassigned records":"Amakuru ataragenerwa umuntu","Assign a person to each saved record that has no owner.":"Genenera umuntu amakuru yose yabitswe ariko ataragira uwayashinzwe.","Included in combined total":"Byashyizwe mu giteranyo cyose",
+    "Assign":"Gena","Unassigned":"Nta muntu ugenwe","Person assigned":"Umuntu yagenewe amakuru",
+    "Enter a person name to assign this record.":"Andika izina ry'umuntu kugira ngo umugenere aya makuru.",
+    "Could not assign person. ":"Ntibishoboye kugenera umuntu. ","Invalid record type.":"Ubwoko bw'amakuru si bwo.","Record not found.":"Amakuru ntabonetse.",
+    "Buyer name":"Izina ry'umuguzi","Sell on credit":"Gurisha ideni","Paid now (RWF)":"Yishyuye ubu (RWF)",
+    "Outstanding credit":"Ideni risigaye","Amount owed":"Umubare w'ideni","Record repayment":"Andika ubwishyu bw'ideni",
+    "Repayment amount (RWF)":"Umubare wishyuwe (RWF)","No outstanding balances.":"Nta myenda isigaye.",
+    "Enter buyer name.":"Andika izina ry'umuguzi.","Enter an amount greater than zero.":"Andika umubare urenze zeru.",
+    "Amount exceeds outstanding balance.":"Amafaranga arenze umwenda usigaye.",
+    "Paid amount cannot exceed sale total.":"Amafaranga yishyuwe ntashobora kurenga igiteranyo cy'igurisha.",
+    "Paid amount cannot be negative.":"Amafaranga yishyuwe ntashobora kuba munsi ya zeru.",
+    "Enter upfront payment, or leave 0 for full credit.":"Andika amafaranga yishyuwe mbere, cyangwa usige 0 kugira ngo byose bibe ideni.",
+    "Record partial or full repayments. Repayments reduce the balance but do not count as new profit.":"Andika ubwishyu bwose cyangwa igice. Bugabanya ideni ariko ntibubarwa nk'inyungu nshya.",
+    "Total outstanding: ":"Ideni ryose risigaye: ",
+    "Repayment reduces outstanding credit; it is not new profit":"Ubwishyu bugabanya ideni risigaye; si inyungu nshya",
+    "Credit sale":"Igurisha ry'ideni","Paid now":"Yishyuye ubu","Credit balance":"Ideni risigaye",
+    "Credit sale to":"Igurisha ry'ideni kuri","Repayment received":"Ubwishyu bw'ideni bwakiriwe","Repayment":"Ubwishyu bw'ideni",
+    "Could not record repayment. ":"Ntibishoboye kubika ubwishyu bw'ideni. ",
+    "Net loss":"Igihombo nyakuri","Net profit":"Inyungu nyakuri","After expenses":"Nyuma y'ibyakoreshejwe",
+    "sales":"ibicuruzwa byagurishijwe","Money spent":"Amafaranga yakoreshejwe",
+    "Net profit each month":"Inyungu nyakuri ya buri kwezi",
+    "Profit from money and products, minus expenses. Red bars are months with a loss.":"Inyungu iva mu mafaranga n'ibicuruzwa, ukuyemo ibyakoreshwe. Utubari dutukura twerekana amezi yagize igihombo.",
+    "Month":"Ukwezi","Money":"Amafaranga","Products":"Ibicuruzwa","Net":"Igiteranyo","Last 6 months":"Amezi 6 ashize",
+    "Record a currency sale":"Andika igurisha ry'ifaranga",
+    "Profit = (selling rate − buying rate) × amount − fees.":"Inyungu = (igiciro cyo kugurisha − icyo kugura) × umubare − amafaranga y'inyongera.",
+    "Date":"Itariki","Currency":"Ifaranga","Amount sold":"Umubare wagurishijwe",
+    "Buying rate (RWF per 1)":"Igiciro cyo kugura (RWF kuri 1)","Selling rate (RWF per 1)":"Igiciro cyo kugurisha (RWF kuri 1)",
+    "Fees (RWF, optional)":"Amafaranga y'inyongera (RWF, si ngombwa)",
+    "Record a product sale":"Andika igurisha ry'igicuruzwa",
+    "Profit = selling price − cost price.":"Inyungu = igiciro cyo kugurisha − icyo kugura.",
+    "Product":"Igicuruzwa","Cost price per item (RWF)":"Igiciro cyo kugura buri kimwe (RWF)",
+    "Selling price per item (RWF)":"Igiciro cyo kugurisha buri kimwe (RWF)",
+    "Record an expense":"Andika ikiguzi",
+    "Transport, rent, airtime, salaries, fees and anything else you spend to run the business.":"Ingendo, ubukode, amakarita ya telefone, imishahara, amafaranga y'inyongera n'ibindi byose ukoresha mu bucuruzi.",
+    "Category":"Icyiciro","Description":"Ibisobanuro","Amount (RWF)":"Umubare (RWF)",
+    "Transport":"Ingendo","Rent":"Ubukode","Airtime / Internet":"Airtime / Interineti","Salaries":"Imishahara","Fees / Taxes":"Amafaranga y'inyongera / Imisoro","Other":"Ibindi",
+    "Save":"Bika","You paid":"Wishyuye","You receive":"Wakiriye","Loss":"Igihombo","Profit":"Inyungu",
+    "Enter the amount and both rates to see your profit.":"Shyiramo umubare n'ibiciro byombi kugira ngo ubone inyungu yawe.",
+    "Total cost":"Igiciro cyose cyo kugura","Total sales":"Igiciro cyose cy'igurisha","on cost":"ku giciro cyo kugura",
+    "Enter the cost and selling price to see your profit.":"Shyiramo igiciro cyo kugura n'icyo kugurisha kugira ngo ubone inyungu yawe.",
+    "Click again to delete":"Ongera ukande kugira ngo usibe","Delete":"Siba",
+    "Loading your records…":"Turimo gupakira amakuru yawe…",
+    "No currency sales yet":"Nta mafaranga uragurisha","Record your first sale above. Your profit is the selling rate minus the buying rate, times the amount.":"Andika igurisha ryawe rya mbere hejuru. Inyungu ni igiciro cyo kugurisha ukuyemo icyo kugura, bikubye umubare.",
+    "No product sales yet":"Nta bicuruzwa uragurisha","Record your first sale above. Your profit is the selling price minus the cost price.":"Andika igurisha ryawe rya mbere hejuru. Inyungu ni igiciro cyo kugurisha ukuyemo icyo kugura.",
+    "No expenses yet":"Nta kiguzi kirandikwa","Add what you spend on transport, rent, airtime and salaries so your net profit is accurate.":"Ongeramo ibyo ukoresha mu ngendo, bukode, telefone n'imishahara kugira ngo inyungu ibare neza.",
+    "Nothing in this period":"Nta makuru ari muri iki gihe",
+    "Sale":"Igurisha","Rates (RWF)":"Ibiciro (RWF)","Cost":"Igiciro","Profit / loss":"Inyungu / igihombo","Fees":"Amafaranga y'inyongera",
+    "Cost → price":"Igiciro cyo kugura → cyo kugurisha","Sales":"Ibyagurishijwe","Expense":"Ikiguzi","Amount":"Umubare",
+    "Pick a longer period above to see older records":"Hitamo igihe kirekire hejuru kugira ngo ubone amakuru ashaje",
+    "sold":"byagurishijwe","fees":"amafaranga y'inyongera","saved":"byabitswe","No history yet":"Nta mateka ahari","Every sale and expense you save will appear here with the calculation behind it, grouped by day with a running total.":"Buri gurisha n'ikiguzi uzabika bizagaragara hano hamwe n'ibarura ryabyo, bikurikirane iminsi n'igiteranyo gikomeza.",
+    "All saved records, newest day first. Each line shows how its result was calculated. The running total is your net profit or loss from your first record up to the end of that day. Not affected by the period buttons. Delete removes one record. Delete all history clears everything and cannot be undone.":"Amakuru yose wabikije, uhereye ku munsi mushya. Buri murongo werekana uko igiteranyo cyabazwe. Igiteranyo gikomeza ni inyungu cyangwa igihombo uhereye ku makuru ya mbere kugeza uwo munsi urangiye. Utubuto tw'igihe ntitugihindura. Siba ikuraho amakuru amwe. Gusiba amateka yose ntibishobora gusubizwa.",
+    "Click again to delete all":"Ongera ukande kugira ngo usibe byose","records":"amakuru","Cancel":"Hagarika","Delete all history":"Siba amateka yose",
+    "Money spent, subtracted from profit":"Amafaranga yakoreshejwe akurwa mu nyungu","Day result":"Igiteranyo cy'umunsi","Running total":"Igiteranyo gikomeza",
+    "Pick the date.":"Hitamo itariki.","Enter the currency, for example USD.":"Andika ifaranga, urugero USD.",
+    "Enter the amount you sold.":"Andika umubare wagurishije.","Enter your buying rate.":"Andika igiciro waguriyeho.",
+    "Enter your selling rate.":"Andika igiciro wagurishijeho.","Enter the product name.":"Andika izina ry'igicuruzwa.",
+    "Enter the quantity sold.":"Andika umubare wagurishije.","Enter the cost price per item.":"Andika igiciro cyo kugura buri kimwe.",
+    "Enter the selling price per item.":"Andika igiciro cyo kugurisha buri kimwe.","Enter the amount spent.":"Andika amafaranga wakoresheje.",
+    "Saved":"Byabitswe","Deleted":"Byasibwe","All history deleted":"Amateka yose yasibwe",
+    "Could not save. ":"Ntibishoboye kubikwa. ","Could not delete. ":"Ntibishoboye gusibwa. ",
+    "Could not delete everything. ":"Ntibishoboye gusiba byose. ","Try again.":"Ongera ugerageze.",
+    "Your saved records cannot be reached yet. Check your connection.":"Amakuru wabikije ntaraboneka. Reba aho uhurira na interineti.",
+    "Saved records stopped updating. Reload the page to reconnect.":"Amakuru yabikijwe ntiyongeye kuvugururwa. Fungura paji bundi bushya kugira ngo wongere uhuze.",
+    "amounts in RWF":"amafaranga muri RWF","Net profit per month, last six months":"Inyungu nyakuri ya buri kwezi, amezi 6 ashize"
+  };
+  var SW={
+    "HEEZA SYSTEM":"HEEZA SYSTEM","Language":"Lugha",
+    "Toggle light and dark mode":"Badilisha kati ya hali ya mwanga na giza","Switch to light mode":"Badilisha kwenda hali ya mwanga","Switch to dark mode":"Badilisha kwenda hali ya giza",
+    "Today":"Leo","This month":"Mwezi huu","This year":"Mwaka huu","All time":"Muda wote",
+    "Period":"Kipindi","Totals for the period":"Jumla za kipindi",
+    "Summary":"Muhtasari","Selling money":"Uuzaji wa fedha","Selling products":"Uuzaji wa bidhaa","Expenses":"Gharama","History":"Historia",
+    "Person":"Mtu","Person name":"Jina la mtu","Enter the person’s name.":"Weka jina la mtu.",
+    "Individual and combined totals":"Jumla za kila mtu na jumla ya wote","Total profit/loss by person for the selected period.":"Faida au hasara ya kila mtu kwa kipindi kilichochaguliwa.",
+    "Individual totals":"Jumla za kila mtu","Combined total":"Jumla ya wote","Net profit / loss":"Faida / hasara halisi",
+    "No assigned records in this period.":"Hakuna rekodi zilizomilikiwa katika kipindi hiki.",
+    "Unassigned records":"Rekodi zisizokabidhiwa","Assign a person to each saved record that has no owner.":"Mkabidhi mtu kila rekodi iliyohifadhiwa ambayo bado haina mmiliki.","Included in combined total":"Imejumuishwa katika jumla ya wote",
+    "Assign":"Kabidhi","Unassigned":"Haijakabidhiwa","Person assigned":"Mtu amekabidhiwa",
+    "Enter a person name to assign this record.":"Weka jina la mtu wa kukabidhi rekodi hii.",
+    "Could not assign person. ":"Imeshindwa kumkabidhi mtu. ","Invalid record type.":"Aina ya rekodi si sahihi.","Record not found.":"Rekodi haijapatikana.",
+    "Buyer name":"Jina la mnunuzi","Sell on credit":"Uza kwa mkopo","Paid now (RWF)":"Amelipa sasa (RWF)",
+    "Outstanding credit":"Mkopo unaodaiwa","Amount owed":"Kiasi kinachodaiwa","Record repayment":"Rekodi malipo ya mkopo",
+    "Repayment amount (RWF)":"Kiasi cha malipo (RWF)","No outstanding balances.":"Hakuna salio linalodaiwa.",
+    "Enter buyer name.":"Weka jina la mnunuzi.","Enter an amount greater than zero.":"Weka kiasi kinachozidi sifuri.",
+    "Amount exceeds outstanding balance.":"Kiasi kinazidi salio linalodaiwa.",
+    "Paid amount cannot exceed sale total.":"Kiasi kilicholipwa hakiwezi kuzidi jumla ya mauzo.",
+    "Paid amount cannot be negative.":"Kiasi kilicholipwa hakiwezi kuwa hasi ya sifuri.",
+    "Enter upfront payment, or leave 0 for full credit.":"Weka kiasi kilicholipwa awali, au acha 0 ili mauzo yote yawe mkopo.",
+    "Record partial or full repayments. Repayments reduce the balance but do not count as new profit.":"Rekodi malipo ya sehemu au kamili. Malipo hupunguza salio lakini hayahesabiwi kama faida mpya.",
+    "Total outstanding: ":"Jumla inayodaiwa: ",
+    "Repayment reduces outstanding credit; it is not new profit":"Malipo hupunguza mkopo unaodaiwa; si faida mpya",
+    "Credit sale":"Mauzo ya mkopo","Paid now":"Amelipa sasa","Credit balance":"Salio la mkopo",
+    "Credit sale to":"Mauzo ya mkopo kwa","Repayment received":"Malipo ya mkopo yamepokelewa","Repayment":"Malipo ya mkopo",
+    "Could not record repayment. ":"Imeshindwa kurekodi malipo ya mkopo. ",
+    "Net loss":"Hasara halisi","Net profit":"Faida halisi","After expenses":"Baada ya gharama",
+    "sales":"mauzo","Money spent":"Fedha zilizotumika",
+    "Net profit each month":"Faida halisi ya kila mwezi",
+    "Profit from money and products, minus expenses. Red bars are months with a loss.":"Faida ya fedha na bidhaa ukitoa gharama. Safu nyekundu zinaonyesha miezi yenye hasara.",
+    "Month":"Mwezi","Money":"Fedha","Products":"Bidhaa","Net":"Jumla halisi","Last 6 months":"Miezi 6 iliyopita",
+    "Record a currency sale":"Rekodi mauzo ya fedha za kigeni",
+    "Profit = (selling rate − buying rate) × amount − fees.":"Faida = (kiwango cha kuuza − kiwango cha kununua) × kiasi − ada.",
+    "Date":"Tarehe","Currency":"Sarafu","Amount sold":"Kiasi kilichouzwa",
+    "Buying rate (RWF per 1)":"Kiwango cha kununua (RWF kwa 1)","Selling rate (RWF per 1)":"Kiwango cha kuuza (RWF kwa 1)",
+    "Fees (RWF, optional)":"Ada (RWF, si lazima)",
+    "Record a product sale":"Rekodi mauzo ya bidhaa",
+    "Profit = selling price − cost price.":"Faida = bei ya kuuza − bei ya kununua.",
+    "Product":"Bidhaa","Cost price per item (RWF)":"Bei ya kununua kwa kila bidhaa (RWF)",
+    "Selling price per item (RWF)":"Bei ya kuuza kwa kila bidhaa (RWF)",
+    "Record an expense":"Rekodi gharama",
+    "Transport, rent, airtime, salaries, fees and anything else you spend to run the business.":"Usafiri, kodi ya pango, muda wa simu, mishahara, ada na matumizi mengine ya biashara.",
+    "Category":"Aina","Description":"Maelezo","Amount (RWF)":"Kiasi (RWF)",
+    "Transport":"Usafiri","Rent":"Kodi ya pango","Airtime / Internet":"Muda wa simu / Intaneti","Salaries":"Mishahara","Fees / Taxes":"Ada / Kodi","Other":"Nyingine",
+    "Save":"Hifadhi","You paid":"Umelipa","You receive":"Unapokea","Loss":"Hasara","Profit":"Faida",
+    "Enter the amount and both rates to see your profit.":"Weka kiasi na viwango vyote viwili ili kuona faida yako.",
+    "Total cost":"Jumla ya gharama","Total sales":"Jumla ya mauzo","on cost":"ya gharama",
+    "Enter the cost and selling price to see your profit.":"Weka gharama na bei ya kuuza ili kuona faida yako.",
+    "Click again to delete":"Bofya tena ili kufuta","Delete":"Futa",
+    "Loading your records…":"Inapakia rekodi zako…",
+    "No currency sales yet":"Bado hakuna mauzo ya fedha","Record your first sale above. Your profit is the selling rate minus the buying rate, times the amount.":"Rekodi mauzo yako ya kwanza hapo juu. Faida ni kiwango cha kuuza ukitoa kiwango cha kununua, kisha kuzidisha kwa kiasi.",
+    "No product sales yet":"Bado hakuna mauzo ya bidhaa","Record your first sale above. Your profit is the selling price minus the cost price.":"Rekodi mauzo yako ya kwanza hapo juu. Faida ni bei ya kuuza ukitoa gharama ya kununua.",
+    "No expenses yet":"Bado hakuna gharama","Add what you spend on transport, rent, airtime and salaries so your net profit is accurate.":"Ongeza matumizi ya usafiri, kodi ya pango, simu na mishahara ili faida yako halisi iwe sahihi.",
+    "Nothing in this period":"Hakuna rekodi katika kipindi hiki",
+    "Sale":"Mauzo","Rates (RWF)":"Viwango (RWF)","Cost":"Gharama","Profit / loss":"Faida / hasara","Fees":"Ada",
+    "Cost → price":"Gharama → bei","Sales":"Mauzo","Expense":"Gharama","Amount":"Kiasi",
+    "Pick a longer period above to see older records":"Chagua kipindi kirefu zaidi hapo juu ili kuona rekodi za zamani",
+    "sold":"zilizouzwa","fees":"ada","saved":"zilizohifadhiwa","No history yet":"Bado hakuna historia","Every sale and expense you save will appear here with the calculation behind it, grouped by day with a running total.":"Kila mauzo na gharama utakayohifadhi itaonekana hapa pamoja na hesabu yake, ikiwa imepangwa kwa siku na jumla inayoendelea.",
+    "All saved records, newest day first. Each line shows how its result was calculated. The running total is your net profit or loss from your first record up to the end of that day. Not affected by the period buttons. Delete removes one record. Delete all history clears everything and cannot be undone.":"Rekodi zote zilizohifadhiwa, kuanzia siku mpya zaidi. Kila mstari unaonyesha jinsi matokeo yalivyohesabiwa. Jumla inayoendelea ni faida au hasara halisi kuanzia rekodi ya kwanza hadi mwisho wa siku hiyo. Haiathiriwi na vitufe vya kipindi. Futa huondoa rekodi moja. Kufuta historia yote hakuwezi kutenduliwa.",
+    "Click again to delete all":"Bofya tena ili kufuta rekodi zote","records":"rekodi","Cancel":"Ghairi","Delete all history":"Futa historia yote",
+    "Money spent, subtracted from profit":"Fedha zilizotumika, zimetolewa kwenye faida","Day result":"Matokeo ya siku","Running total":"Jumla inayoendelea",
+    "Pick the date.":"Chagua tarehe.","Enter the currency, for example USD.":"Weka sarafu, kwa mfano USD.",
+    "Enter the amount you sold.":"Weka kiasi ulichouza.","Enter your buying rate.":"Weka kiwango chako cha kununua.",
+    "Enter your selling rate.":"Weka kiwango chako cha kuuza.","Enter the product name.":"Weka jina la bidhaa.",
+    "Enter the quantity sold.":"Weka idadi iliyouzwa.","Enter the cost price per item.":"Weka bei ya kununua kwa kila bidhaa.",
+    "Enter the selling price per item.":"Weka bei ya kuuza kwa kila bidhaa.","Enter the amount spent.":"Weka kiasi kilichotumika.",
+    "Saved":"Imehifadhiwa","Deleted":"Imefutwa","All history deleted":"Historia yote imefutwa",
+    "Could not save. ":"Imeshindwa kuhifadhi. ","Could not delete. ":"Imeshindwa kufuta. ",
+    "Could not delete everything. ":"Imeshindwa kufuta yote. ","Try again.":"Jaribu tena.",
+    "Your saved records cannot be reached yet. Check your connection.":"Rekodi zako zilizohifadhiwa hazipatikani kwa sasa. Angalia muunganisho wako.",
+    "Saved records stopped updating. Reload the page to reconnect.":"Rekodi zilizohifadhiwa hazisasishwi tena. Pakia ukurasa upya ili kuunganisha tena.",
+    "amounts in RWF":"kiasi katika RWF","Net profit per month, last six months":"Faida halisi kwa mwezi, miezi sita iliyopita"
+  };
+  var TRANSLATIONS={fr:FR,rw:RW,sw:SW},textSources=new WeakMap(),ariaSources=new WeakMap();
+  var language='en';
+  try{var savedLanguage=localStorage.getItem('pnl-language');language=TRANSLATIONS[savedLanguage]?savedLanguage:'en'}catch(e){}
+  var theme='light';
+  try{theme=localStorage.getItem('pnl-theme')==='dark'?'dark':'light'}catch(e){}
+  function setTheme(next){
+    theme=next==='dark'?'dark':'light';
+    document.documentElement.setAttribute('data-theme',theme);
+    var toggle=$('#theme-toggle');
+    toggle.setAttribute('aria-pressed',theme==='dark');
+    toggle.title=tr(theme==='dark'?'Switch to light mode':'Switch to dark mode');
+    try{localStorage.setItem('pnl-theme',theme)}catch(e){}
+  }
+  setTheme(theme);
+  function tr(s){
+    if(language==='en')return s;
+    var dict=TRANSLATIONS[language],m;
+    if(dict[s])return dict[s];
+    m=s.match(/^(\d+) sales$/);if(m)return m[1]+' '+dict.sales;
+    m=s.match(/^Fees (\d+)$/);if(m)return dict.Fees+' '+m[1];
+    m=s.match(/^(.+ · )(\d+) sold$/);if(m)return m[1]+m[2]+' '+dict.sold;
+    m=s.match(/^Pick a longer period above to see older records \((\d+) saved\)\.$/);if(m)return dict['Pick a longer period above to see older records']+' ('+m[1]+' '+dict.saved+').';
+    m=s.match(/^Click again to delete all (\d+) records$/);if(m)return dict['Click again to delete all']+' '+m[1]+' '+dict.records;
+    m=s.match(/^ \(([\d.]+)% on cost\)$/);if(m)return ' ('+m[1].replace('.',language==='fr'?',':'.')+'% '+dict['on cost']+')';
+    m=s.match(/^(.* − \d+) fees$/);if(m)return m[1]+' '+dict.fees;
+    if(s.indexOf('Could not save. ')===0)return dict['Could not save. ']+s.slice(16);
+    if(s.indexOf('Could not delete. ')===0)return dict['Could not delete. ']+s.slice(18);
+    if(s.indexOf('Could not delete everything. ')===0)return dict['Could not delete everything. ']+s.slice(29);
+    if(s.indexOf('Could not assign person. ')===0)return dict['Could not assign person. ']+tr(s.slice('Could not assign person. '.length));
+    return s;
+  }
+  function localize(root){
+    if(!root)return;
+    var walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),node;
+    while((node=walker.nextNode()))if(!node.parentElement.closest('[data-user-text]')){
+      if(!textSources.has(node))textSources.set(node,node.nodeValue);
+      node.nodeValue=tr(textSources.get(node));
+    }
+    Array.prototype.forEach.call(root.querySelectorAll('[aria-label]'),function(el){
+      if(!ariaSources.has(el))ariaSources.set(el,el.getAttribute('aria-label'));
+      el.setAttribute('aria-label',tr(ariaSources.get(el)));
+    });
+  }
+  function setLanguage(next){
+    language=TRANSLATIONS[next]?next:'en';
+    document.documentElement.lang=language;
+    try{localStorage.setItem('pnl-language',language)}catch(e){}
+    $('#language').value=language;
+    document.title=tr('HEEZA SYSTEM');
+    $('#theme-toggle').title=tr(theme==='dark'?'Switch to light mode':'Switch to dark mode');
+    var values={},checks={};
+    var form=$('#entryForm');
+    if(form)Array.prototype.forEach.call(form.querySelectorAll('input,select'),function(el){values[el.id]=el.value;if(el.type==='checkbox')checks[el.id]=el.checked});
+    renderAll();
+    renderBody();
+    Object.keys(values).forEach(function(id){var el=$('#'+id);if(el)el.value=values[id]});
+    Object.keys(checks).forEach(function(id){var el=$('#'+id);if(el)el.checked=checks[id]});
+    if($('#f-credit'))$('#credit-details').hidden=!$('#f-credit').checked;
+    updatePreview();
+    localize(document.querySelector('.wrap'));
+  }
+  function locale(){return {fr:'fr-FR',rw:'rw-RW',sw:'sw-KE'}[language]||'en-GB'}
+  var RW_MONTHS=['Mutarama','Gashyantare','Werurwe','Mata','Gicurasi','Kamena','Nyakanga','Kanama','Nzeri','Ukwakira','Ugushyingo','Ukuboza'];
+  var RW_DAYS=['Ku Cyumweru','Ku wa Mbere','Ku wa Kabiri','Ku wa Gatatu','Ku wa Kane','Ku wa Gatanu','Ku wa Gatandatu'];
+  var SW_MONTHS=['Januari','Februari','Machi','Aprili','Mei','Juni','Julai','Agosti','Septemba','Oktoba','Novemba','Desemba'];
+  var SW_DAYS=['Jumapili','Jumatatu','Jumanne','Jumatano','Alhamisi','Ijumaa','Jumamosi'];
+  function monthName(d,shortName){
+    if(language==='rw')return RW_MONTHS[d.getMonth()];
+    if(language==='sw')return SW_MONTHS[d.getMonth()];
+    return d.toLocaleString(locale(),{month:shortName?'short':'long'});
+  }
+  function formatDate(d,options){
+    if(language==='rw'||language==='sw'){
+      var text=options.weekday?(language==='rw'?RW_DAYS[d.getDay()]:SW_DAYS[d.getDay()])+', ':'';
+      if(options.day)text+=d.getDate()+' ';
+      if(options.month)text+=monthName(d,false);
+      if(options.year)text+=(text?' ':'')+d.getFullYear();
+      return text.trim();
+    }
+    return d.toLocaleDateString(locale(),options);
+  }
+  function iso(d){var p=function(n){return String(n).padStart(2,'0')};return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())}
+  var TODAY=iso(NOW);
+  var fmt=function(n){return Math.round(n).toLocaleString(locale())};
+  var short=fmt;
+  var esc=function(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+  var money=function(n){return '<span class="cur">RWF</span>'+(n<0?'-':'')+fmt(Math.abs(n))};
+  var sgn=function(n){return n<0?' neg':''};
+  var dstr=function(s){var d=new Date(s+'T00:00:00');var o={day:'numeric',month:'short'};if(d.getFullYear()!==NOW.getFullYear())o.year='numeric';return formatDate(d,o)};
+  var CATS=['Transport','Rent','Airtime / Internet','Salaries','Fees / Taxes','Other'];
+  var COLL=['currency','products','expenses'];
+  var STORAGE_COLL=COLL.concat(['repayments']);
+
+  var data={currency:[],products:[],expenses:[],repayments:[]}, store=null, localMode=false, loaded=false;
+  var tab='summary', period='month', pendingDel=null, pendingAll=false;
+
+  $('#language').value=language;
+  document.documentElement.lang=language;
+
+  /* ---- calculations ---- */
+  function cProfit(x){return x.amount*(x.sell-x.buy)-(x.fees||0)}
+  function pProfit(x){return x.qty*(x.price-x.cost)}
+  function inPeriod(d){
+    if(period==='all')return true;
+    if(period==='today')return d===TODAY;
+    if(period==='month')return d.slice(0,7)===TODAY.slice(0,7);
+    return d.slice(0,4)===TODAY.slice(0,4);
+  }
+  function totals(filterFn){
+    var m=0,p=0,e=0,mc=0,pc=0;
+    data.currency.forEach(function(x){if(filterFn(x.date)){m+=cProfit(x);mc++}});
+    data.products.forEach(function(x){if(filterFn(x.date)){p+=pProfit(x);pc++}});
+    data.expenses.forEach(function(x){if(filterFn(x.date))e+=x.amount});
+    return {m:m,p:p,e:e,net:m+p-e,mc:mc,pc:pc};
+  }
+  function personTotals(filterFn){
+    var by=Object.create(null),unassigned={count:0,net:0},combined=0;
+    function add(x,net){
+      if(!filterFn(x.date))return;
+      combined+=net;
+      var name=String(x.person||'').trim();
+      if(!name){unassigned.count++;unassigned.net+=net;return}
+      var key=name.toLocaleLowerCase('en');
+      if(!by[key])by[key]={name:name,net:0};
+      by[key].net+=net;
+    }
+    data.currency.forEach(function(x){add(x,cProfit(x))});
+    data.products.forEach(function(x){add(x,pProfit(x))});
+    data.expenses.forEach(function(x){add(x,-x.amount)});
+    return {people:Object.keys(by).map(function(k){return by[k]}).sort(function(a,b){return a.name.localeCompare(b.name,locale())}),unassigned:unassigned,combined:combined};
+  }
+  function receivableBalances(){
+    var buyers=Object.create(null);
+    data.products.forEach(function(x){
+      if(!x.credit||!String(x.buyer||'').trim())return;
+      var name=String(x.buyer).trim(),key=name.toLocaleLowerCase('en');
+      if(!buyers[key])buyers[key]={name:name,balance:0};
+      buyers[key].balance+=Math.max(0,x.qty*x.price-(Number(x.paidNow)||0));
+    });
+    data.repayments.forEach(function(x){
+      var key=String(x.buyer||'').trim().toLocaleLowerCase('en');
+      if(buyers[key])buyers[key].balance-=Number(x.amount)||0;
+    });
+    return Object.keys(buyers).map(function(k){return buyers[k]}).filter(function(x){return x.balance>0}).sort(function(a,b){return a.name.localeCompare(b.name,locale())});
+  }
+  function receivablesHTML(){
+    if(!loaded)return '';
+    var balances=receivableBalances();
+    var total=balances.reduce(function(sum,x){return sum+x.balance},0);
+    if(!balances.length)return '<div class="panel"><h2>Outstanding credit</h2><p class="hint">No outstanding balances.</p></div>';
+    return '<div class="panel"><h2>Outstanding credit</h2><p class="hint">Record partial or full repayments. Repayments reduce the balance but do not count as new profit.</p><div class="list">'+
+      balances.map(function(x){
+        return '<div class="credit-row"><div class="credit-customer"><b data-user-text>'+esc(x.name)+'</b><span class="sm">Credit balance</span></div><strong class="credit-balance">'+money(x.balance)+'</strong>'+
+          '<label class="field"><span>Repayment amount (RWF)</span><input type="number" min="0" step="any" data-repayment-amount aria-label="Repayment amount (RWF)"></label>'+
+          '<button class="btn small primary" type="button" data-repay="1" data-buyer="'+esc(x.name)+'">Record repayment</button></div>';
+      }).join('')+'</div><p class="hint">Total outstanding: '+money(total)+'</p></div>';
+  }
+  function peopleSummaryHTML(){
+    var t=personTotals(inPeriod),rows=t.people.map(function(p){
+      return '<tr><td data-user-text>'+esc(p.name)+'</td><td class="num r'+sgn(p.net)+'">'+money(p.net)+'</td></tr>';
+    }).join('');
+    var loss=t.combined<0;
+    return '<div class="panel"><h2>Individual and combined totals</h2><p class="hint">Total profit/loss by person for the selected period.</p>'+
+      '<div class="fig lead'+(loss?' loss':'')+'"><div class="lab">Combined total</div><div class="val num'+sgn(t.combined)+'">'+money(t.combined)+'</div><div class="sub">'+(loss?'Net loss':'Net profit')+'</div></div>'+
+      '<h3 style="font-size:15px;margin-top:16px">Individual totals</h3>'+
+      (rows?'<div class="tbl"><table><thead><tr><th>Person</th><th>Net profit / loss</th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<p class="hint">No assigned records in this period.</p>')+
+      (t.unassigned.count?'<p class="hint"><span>Unassigned records</span>: '+t.unassigned.count+' · '+money(t.unassigned.net)+' (<span>Included in combined total</span>)</p>':'')+
+      '</div>'+receivablesHTML()+unassignedRecordsHTML();
+  }
+  function unassignedRecordsHTML(){
+    if(!loaded)return '';
+    var items=[];
+    COLL.forEach(function(k){
+      data[k].forEach(function(x){
+        if(String(x.person||'').trim())return;
+        var type=k==='currency'?'Selling money':k==='products'?'Selling products':'Expenses';
+        var title=k==='currency'?x.cur+' '+fmt(x.amount):k==='products'?x.name:x.cat+(x.desc?' · '+x.desc:'');
+        items.push({coll:k,id:x.id,date:x.date,type:type,title:title});
+      });
+    });
+    items.sort(function(a,b){return b.date.localeCompare(a.date)||b.id.localeCompare(a.id)});
+    if(!items.length)return '';
+    return '<div class="panel"><h2>Unassigned records</h2><p class="hint">Assign a person to each saved record that has no owner.</p><div class="list">'+
+      items.map(function(x){
+        return '<div class="assign-row"><div><b>'+tr(x.type)+'</b><span class="sm" data-user-text>'+esc(x.title)+'</span><span class="sm">'+dstr(x.date)+'</span></div>'+
+          '<label class="field"><span>Person name</span><input type="text" autocomplete="off" data-owner-input aria-label="Person name"></label>'+
+          '<button class="btn small primary" type="button" data-assign="1" data-coll="'+esc(x.coll)+'" data-id="'+esc(x.id)+'">Assign</button></div>';
+      }).join('')+'</div></div>';
+  }
+
+  /* ---- storage ---- */
+  function lsRead(){
+    try{
+      var o=JSON.parse(localStorage.getItem('pnl-book')||'{}');
+      var hasAny=STORAGE_COLL.some(function(k){return Array.isArray(o[k])&&o[k].length>0});
+      if(!hasAny){
+        var demo={
+          currency:[{id:'demo-currency',date:TODAY,person:'Aisha',cur:'USD',amount:800,buy:1300,sell:1350,fees:10000}],
+          products:[{id:'demo-product',date:TODAY,person:'Aisha',name:'Rice bag',qty:60,cost:1500,price:1700}],
+          expenses:[{id:'demo-expense',date:TODAY,person:'Aisha',cat:'Transport',desc:'Fuel and delivery',amount:15000}],
+          repayments:[]
+        };
+        localStorage.setItem('pnl-book',JSON.stringify(demo));
+        o=demo;
+      }
+      STORAGE_COLL.forEach(function(k){data[k]=o[k]||[]})
+    }catch(e){}
+  }
+  function lsWrite(){try{localStorage.setItem('pnl-book',JSON.stringify(data))}catch(e){}}
+  function toast(msg){var t=$('#toast');t.textContent=tr(msg);t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(function(){t.hidden=true},3200)}
+  function uid(){return 'e'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+  function save(coll,doc){
+    if(store)return store.collection(coll).doc(doc.id).set(doc).then(function(){return true},function(e){toast('Could not save. '+((e&&e.message)||'Try again.'));return false});
+    var i=data[coll].findIndex(function(x){return x.id===doc.id});
+    if(i<0)data[coll].push(doc);else data[coll][i]=doc;
+    lsWrite();renderAll();return Promise.resolve(true);
+  }
+  function recordRepayment(buyer,amount){
+    var balance=receivableBalances().find(function(x){return x.name.toLocaleLowerCase('en')===buyer.toLocaleLowerCase('en')});
+    if(!balance){toast('Record not found.');return}
+    if(amount<=0){toast('Enter an amount greater than zero.');return}
+    if(amount>balance.balance){toast('Amount exceeds outstanding balance.');return}
+    save('repayments',{id:uid(),date:TODAY,buyer:balance.name,amount:amount}).then(function(ok){
+      if(!ok)return;
+      toast('Repayment received');
+      renderAll();
+    });
+  }
+  function assignRecord(coll,id,person){
+    if(COLL.indexOf(coll)<0){toast('Could not assign person. Invalid record type.');return}
+    var record=data[coll].find(function(x){return x.id===id});
+    if(!record){toast('Could not assign person. Record not found.');return}
+    var updated=Object.assign({},record,{person:person});
+    save(coll,updated).then(function(ok){
+      if(!ok)return;
+      var index=data[coll].findIndex(function(x){return x.id===id});
+      if(index>=0)data[coll][index]=updated;
+      renderAll();
+      toast('Person assigned');
+    });
+  }
+  function del(coll,id){
+    if(store)return store.collection(coll).doc(id).delete().then(function(){return true},function(e){toast('Could not delete. '+((e&&e.message)||'Try again.'));return false});
+    data[coll]=data[coll].filter(function(x){return x.id!==id});lsWrite();renderAll();return Promise.resolve(true);
+  }
+
+  /* ---- figures ---- */
+  function renderFigures(){
+    var t=totals(inPeriod),loss=t.net<0;
+    $('#figures').innerHTML=
+      '<div class="fig lead'+(loss?' loss':'')+'"><div class="lab">'+(loss?'Net loss':'Net profit')+'</div><div class="val num'+sgn(t.net)+'">'+money(t.net)+'</div><div class="sub">After expenses</div></div>'+
+      '<div class="fig"><div class="lab">Selling money</div><div class="val num'+sgn(t.m)+'">'+money(t.m)+'</div><div class="sub">'+t.mc+' sales</div></div>'+
+      '<div class="fig"><div class="lab">Selling products</div><div class="val num'+sgn(t.p)+'">'+money(t.p)+'</div><div class="sub">'+t.pc+' sales</div></div>'+
+      '<div class="fig"><div class="lab">Expenses</div><div class="val num">'+money(t.e)+'</div><div class="sub">Money spent</div></div>';
+    localize($('#figures'));
+  }
+
+  /* ---- summary tab ---- */
+  function summaryHTML(){
+    var months=[];
+    for(var i=5;i>=0;i--){var d=new Date(NOW.getFullYear(),NOW.getMonth()-i,1);var key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+      var t=totals(function(dt){return dt.slice(0,7)===key});t.label=String(d.getMonth()+1);t.full=String(d.getMonth()+1)+'/'+d.getFullYear();months.push(t)}
+    var vals=months.map(function(m){return m.net});
+    var hi=Math.max.apply(null,vals.concat([1])),lo=Math.min.apply(null,vals.concat([0]));
+    var span=Math.max(hi-lo,1);
+    var mag=Math.pow(10,Math.floor(Math.log10(span)));
+    var step=[1,2,2.5,5,10].map(function(x){return x*mag/2}).find(function(x){return span/x<=6})||mag;
+    var top=Math.ceil(hi/step)*step,bot=Math.floor(lo/step)*step;if(top===bot)top=bot+step;
+    var W=640,H=240,L=Math.max(54,Math.max(short(top).length,short(bot).length)*7+14),R=12,T=22,B=30,pw=W-L-R,ph=H-T-B;
+    var y=function(v){return T+ph-((v-bot)/(top-bot))*ph};
+    var s='<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+tr('Net profit per month, last six months')+'">';
+    for(var v=bot;v<=top+1e-9;v+=step){s+='<line class="gl" x1="'+L+'" x2="'+(W-R)+'" y1="'+y(v)+'" y2="'+y(v)+'"/><text class="ax" x="'+(L-8)+'" y="'+(y(v)+4)+'" text-anchor="end">'+short(v)+'</text>'}
+    s+='<line class="zero" x1="'+L+'" x2="'+(W-R)+'" y1="'+y(0)+'" y2="'+y(0)+'"/>';
+    var slot=pw/months.length,bw=Math.min(54,slot*.58);
+    months.forEach(function(m,i){
+      var x=L+slot*i+(slot-bw)/2,y0=y(0),y1=y(m.net),by=Math.min(y0,y1),bh=Math.abs(y0-y1);
+      s+='<rect class="bar'+(i===months.length-1?' now':'')+(m.net<0?' neg':'')+'" x="'+x+'" y="'+by+'" width="'+bw+'" height="'+bh+'" rx="3"/>';
+      if(m.net!==0)s+='<text class="vl" x="'+(x+bw/2)+'" y="'+(m.net>=0?by-6:by+bh+13)+'" text-anchor="middle">'+short(m.net)+'</text>';
+      s+='<text class="ax" x="'+(x+bw/2)+'" y="'+(H-10)+'" text-anchor="middle">'+m.label+'</text>';
+    });
+    s+='</svg>';
+    var rows=months.slice().reverse().map(function(m){return '<tr><td>'+m.full+'</td><td class="num'+sgn(m.m)+'">'+fmt(m.m)+'</td><td class="num'+sgn(m.p)+'">'+fmt(m.p)+'</td><td class="num">'+fmt(m.e)+'</td><td class="num'+sgn(m.net)+'"><b>'+fmt(m.net)+'</b></td></tr>'}).join('');
+    var all=months.reduce(function(a,m){a.m+=m.m;a.p+=m.p;a.e+=m.e;a.net+=m.net;return a},{m:0,p:0,e:0,net:0});
+    return peopleSummaryHTML()+'<div class="panel"><h2>Net profit each month</h2><p class="hint">Profit from money and products, minus expenses. Red bars are months with a loss.</p><div class="chart">'+s+'</div>'+
+      '<div class="tbl"><table><thead><tr><th>Month</th><th>Money</th><th>Products</th><th>Expenses</th><th>Net</th></tr></thead><tbody>'+rows+'</tbody>'+
+      '<tfoot><tr><td>Last 6 months</td><td class="num'+sgn(all.m)+'">'+fmt(all.m)+'</td><td class="num'+sgn(all.p)+'">'+fmt(all.p)+'</td><td class="num">'+fmt(all.e)+'</td><td class="num'+sgn(all.net)+'">'+fmt(all.net)+'</td></tr></tfoot></table></div></div>';
+  }
+
+  /* ---- entry forms ---- */
+  var FORMS={
+    currency:{title:'Record a currency sale',hint:'Profit = (selling rate − buying rate) × amount − fees.',fields:
+      '<div class="field"><label for="f-date">Date</label><input id="f-date" type="date" value="'+TODAY+'"></div>'+
+      '<div class="field"><label for="f-person">Person</label><input id="f-person" type="text" autocomplete="name"></div>'+
+      '<div class="field"><label for="f-cur">Currency</label><input id="f-cur" type="text" value="USD" maxlength="8" autocomplete="off"></div>'+
+      '<div class="field"><label for="f-amt">Amount sold</label><input id="f-amt" type="number" inputmode="decimal" min="0" step="any"></div>'+
+      '<div class="field"><label for="f-buy">Buying rate (RWF per 1)</label><input id="f-buy" type="number" inputmode="decimal" min="0" step="any"></div>'+
+      '<div class="field"><label for="f-sell">Selling rate (RWF per 1)</label><input id="f-sell" type="number" inputmode="decimal" min="0" step="any"></div>'+
+      '<div class="field"><label for="f-fees">Fees (RWF, optional)</label><input id="f-fees" type="number" inputmode="decimal" min="0" step="any"></div>'},
+    products:{title:'Record a product sale',hint:'Profit = selling price − cost price.',fields:
+      '<div class="field"><label for="f-date">Date</label><input id="f-date" type="date" value="'+TODAY+'"></div>'+
+      '<div class="field"><label for="f-person">Person</label><input id="f-person" type="text" autocomplete="name"></div>'+
+      '<div class="field"><label for="f-name">Product</label><input id="f-name" type="text" autocomplete="off"></div>'+
+      '<div class="field"><label for="f-cost">Cost price per item (RWF)</label><input id="f-cost" type="number" inputmode="decimal" min="0" step="any"></div>'+
+      '<div class="field"><label for="f-price">Selling price per item (RWF)</label><input id="f-price" type="number" inputmode="decimal" min="0" step="any"></div>'+
+      '<div class="field"><label><input id="f-credit" type="checkbox"> Sell on credit</label></div>'+
+      '<div class="grid" id="credit-details" hidden><div class="field"><label for="f-buyer">Buyer name</label><input id="f-buyer" type="text" autocomplete="off"></div>'+
+      '<div class="field"><label for="f-paid-now">Paid now (RWF)</label><input id="f-paid-now" type="number" inputmode="decimal" min="0" step="any" value="0"><span class="hint">Enter upfront payment, or leave 0 for full credit.</span></div></div>'},
+    expenses:{title:'Record an expense',hint:'Transport, rent, airtime, salaries, fees and anything else you spend to run the business.',fields:
+      '<div class="field"><label for="f-date">Date</label><input id="f-date" type="date" value="'+TODAY+'"></div>'+
+      '<div class="field"><label for="f-person">Person</label><input id="f-person" type="text" autocomplete="name"></div>'+
+      '<div class="field"><label for="f-cat">Category</label><select id="f-cat">'+CATS.map(function(c){return '<option value="'+esc(c)+'">'+esc(c)+'</option>'}).join('')+'</select></div>'+
+      '<div class="field"><label for="f-desc">Description</label><input id="f-desc" type="text" autocomplete="off"></div>'+
+      '<div class="field"><label for="f-exp">Amount (RWF)</label><input id="f-exp" type="number" inputmode="decimal" min="0" step="any"></div>'}
+  };
+  function formHTML(k){
+    var f=FORMS[k];
+    return '<div class="panel"><h2>'+f.title+'</h2><p class="hint">'+f.hint+'</p><form id="entryForm" novalidate><div class="grid">'+f.fields+'</div>'+
+      (k==='expenses'?'':'<div class="preview" id="preview"></div>')+
+      '<div class="err" id="err" role="alert"></div><div><button class="btn primary" type="submit">Save</button></div></form></div>';
+  }
+  function num(id){var el=$('#'+id);return el?(parseFloat(el.value)||0):0}
+  function updatePreview(){
+    var p=$('#preview');if(!p)return;
+    if(tab==='currency'){
+      var a=num('f-amt'),b=num('f-buy'),s=num('f-sell'),fe=num('f-fees');
+      if(a>0&&b>0&&s>0){var pr=a*(s-b)-fe;p.className='preview'+(pr<0?' loss':'');p.innerHTML='<span>You paid <b class="num">RWF '+fmt(a*b)+'</b></span><span>You receive <b class="num">RWF '+fmt(a*s)+'</b></span><span>'+(pr<0?'Loss':'Profit')+' <b class="num">RWF '+fmt(Math.abs(pr))+'</b></span>'}
+      else{p.className='preview';p.innerHTML='<span>Enter the amount and both rates to see your profit.</span>'}
+    }else if(tab==='products'){
+      var q=1,c=num('f-cost'),pz=num('f-price');
+      if(q>0&&c>0&&pz>0){var pf=q*(pz-c),pc=(pz-c)/c*100;p.className='preview'+(pf<0?' loss':'');p.innerHTML='<span>Total cost <b class="num">RWF '+fmt(q*c)+'</b></span><span>Total sales <b class="num">RWF '+fmt(q*pz)+'</b></span><span>'+(pf<0?'Loss':'Profit')+' <b class="num">RWF '+fmt(Math.abs(pf))+'</b> ('+pc.toLocaleString(locale(),{minimumFractionDigits:1,maximumFractionDigits:1})+'% on cost)</span>'+(($('#f-credit')||{}).checked?'<span>Credit balance <b class="num">RWF '+fmt(Math.max(0,q*pz-num('f-paid-now')) )+'</b></span>':'')}
+      else{p.className='preview';p.innerHTML='<span>Enter the cost and selling price to see your profit.</span>'}
+    }
+    if(p)localize(p);
+  }
+
+  /* ---- lists ---- */
+  function delBtn(coll,id){
+    var on=pendingDel&&pendingDel.c===coll&&pendingDel.id===id;
+    return '<span class="act"><button class="btn small'+(on?' danger':'')+'" data-del="'+coll+'" data-id="'+esc(id)+'">'+(on?'Click again to delete':'Delete')+'</button></span>';
+  }
+  function ownerLine(x){
+    var person=String(x.person||'').trim();
+    return person?'<span class="sm"><span>Person</span>: <b data-user-text>'+esc(person)+'</b></span>':'<span class="sm">Unassigned</span>';
+  }
+  function emptyHTML(title,desc){return '<div class="empty"><h3>'+title+'</h3><p>'+desc+'</p></div>'}
+  function listHTML(k){
+    if(!loaded)return '<div class="list"><div class="empty"><p>Loading your records…</p></div></div>';
+    var arr=data[k].slice().sort(function(a,b){return b.date.localeCompare(a.date)||b.id.localeCompare(a.id)});
+    var inP=arr.filter(function(x){return inPeriod(x.date)});
+    var head,rows;
+    if(!arr.length){
+      var ex=k==='currency'?['No currency sales yet','Record your first sale above. Your profit is the selling rate minus the buying rate, times the amount.']:k==='products'?['No product sales yet','Record your first sale above. Your profit is the selling price minus the cost price.']:['No expenses yet','Add what you spend on transport, rent, airtime and salaries so your net profit is accurate.'];
+      return '<div class="list">'+emptyHTML(ex[0],ex[1])+'</div>';
+    }
+    if(!inP.length)return '<div class="list">'+emptyHTML('Nothing in this period','Pick a longer period above to see older records ('+arr.length+' saved).')+'</div>';
+    if(k==='currency'){
+      head='<div class="cols cc-money"><span>Sale</span><span>Rates (RWF)</span><span class="r">Cost</span><span class="r">Profit / loss</span><span></span></div>';
+      rows=inP.map(function(x){var p=cProfit(x);return '<div class="row cc-money"><div class="nm"><b><span data-user-text>'+esc(x.cur)+'</span> '+fmt(x.amount)+'</b><span class="sm">'+dstr(x.date)+'</span>'+ownerLine(x)+'</div><div><span class="num">'+x.buy+' → '+x.sell+'</span>'+(x.fees?'<span class="sm">Fees '+fmt(x.fees)+'</span>':'')+'</div><div class="r num">'+fmt(x.amount*x.buy)+'</div><div class="r res num'+sgn(p)+'">'+(p<0?'-':'')+fmt(Math.abs(p))+'</div>'+delBtn(k,x.id)+'</div>'}).join('');
+    }else if(k==='products'){
+      head='<div class="cols cc-prod"><span>Product</span><span>Cost → price</span><span class="r">Sales</span><span class="r">Profit / loss</span><span></span></div>';
+      rows=inP.map(function(x){var p=pProfit(x);return '<div class="row cc-prod"><div class="nm"><b data-user-text>'+esc(x.name)+'</b><span class="sm">'+dstr(x.date)+' · '+fmt(x.qty)+' sold</span>'+ownerLine(x)+(x.credit?'<span class="sm">Credit sale to <b data-user-text>'+esc(x.buyer)+'</b> · <span>Paid now</span> '+money(x.paidNow||0)+' · <span>Credit balance</span> '+money(Math.max(0,x.qty*x.price-(Number(x.paidNow)||0)))+'</span>':'')+'</div><div class="num">'+fmt(x.cost)+' → '+fmt(x.price)+'</div><div class="r num">'+fmt(x.qty*x.price)+'</div><div class="r res num'+sgn(p)+'">'+(p<0?'-':'')+fmt(Math.abs(p))+'</div>'+delBtn(k,x.id)+'</div>'}).join('');
+    }else{
+      head='<div class="cols cc-exp"><span>Expense</span><span>Description</span><span class="r">Amount</span><span></span></div>';
+      rows=inP.map(function(x){return '<div class="row cc-exp"><div class="nm"><b data-user-text>'+esc(x.cat)+'</b><span class="sm">'+dstr(x.date)+'</span>'+ownerLine(x)+'</div><div class="nm" data-user-text>'+esc(x.desc||'—')+'</div><div class="r res num">'+fmt(x.amount)+'</div>'+delBtn(k,x.id)+'</div>'}).join('');
+    }
+    return '<div class="list">'+head+rows+'</div>';
+  }
+
+  function refreshList(){if(tab==='history')renderBody();else{$('#list').innerHTML=listHTML(tab);localize($('#list'))}}
+  function delAllHTML(n){
+    return '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">'+(pendingAll?'<button class="btn danger small" data-delall="1">Click again to delete all '+n+' records</button><button class="btn small" data-cancel="1">Cancel</button>':'<button class="btn small" data-delall="1">Delete all history</button>')+'</div>';
+  }
+  function delAll(){
+    if(store){
+      var ps=[];STORAGE_COLL.forEach(function(k){data[k].forEach(function(x){ps.push(store.collection(k).doc(x.id).delete())})});
+      return Promise.all(ps).then(function(){return true},function(e){toast('Could not delete everything. '+((e&&e.message)||'Try again.'));return false});
+    }
+    STORAGE_COLL.forEach(function(k){data[k]=[]});lsWrite();renderAll();return Promise.resolve(true);
+  }
+
+  /* ---- history: every record with its calculation ---- */
+  function historyHTML(){
+    if(!loaded)return '<div class="list"><div class="empty"><p>Loading your records…</p></div></div>';
+    var ev=[];
+    data.currency.forEach(function(x){ev.push({d:x.date,id:x.id,c:'currency',type:'Money',title:x.cur+' '+fmt(x.amount),person:x.person||'',calc:fmt(x.amount)+' × ('+x.sell+' − '+x.buy+')'+(x.fees?' − '+fmt(x.fees)+' fees':''),res:cProfit(x)})});
+    data.products.forEach(function(x){ev.push({d:x.date,id:x.id,c:'products',type:'Product',title:x.name+' ('+fmt(x.qty)+' sold)',person:x.person||'',calc:fmt(x.qty)+' × ('+fmt(x.price)+' − '+fmt(x.cost)+')'+(x.credit?' · '+tr('Credit sale to')+' '+x.buyer+' · '+tr('Paid now')+' '+fmt(x.paidNow||0)+' · '+tr('Credit balance')+' '+fmt(Math.max(0,x.qty*x.price-(Number(x.paidNow)||0))):''),res:pProfit(x)})});
+    data.expenses.forEach(function(x){ev.push({d:x.date,id:x.id,c:'expenses',type:'Expense',title:x.cat+(x.desc?' · '+x.desc:''),person:x.person||'',calc:'Money spent, subtracted from profit',res:-x.amount})});
+    data.repayments.forEach(function(x){ev.push({d:x.date,id:x.id,c:'repayments',type:'Repayment',title:tr('Repayment received')+' · '+x.buyer+' · '+money(x.amount),person:'',calc:'Repayment reduces outstanding credit; it is not new profit',res:0})});
+    if(!ev.length)return '<div class="list">'+emptyHTML('No history yet','Every sale and expense you save will appear here with the calculation behind it, grouped by day with a running total.')+'</div>';
+    ev.sort(function(a,b){return a.d.localeCompare(b.d)||a.id.localeCompare(b.id)});
+    var days=[],map={},run=0;
+    ev.forEach(function(e){var g=map[e.d];if(!g){g=map[e.d]={d:e.d,items:[],net:0};days.push(g)}g.items.push(e);g.net+=e.res;run+=e.res;g.run=run});
+    days.reverse();
+    return '<div class="panel"><h2>History</h2><p class="hint">All saved records, newest day first. Each line shows how its result was calculated. The running total is your net profit or loss from your first record up to the end of that day. Not affected by the period buttons. Delete removes one record. Delete all history clears everything and cannot be undone.</p>'+delAllHTML(ev.length)+'</div>'+
+      '<div class="list">'+days.map(function(g){
+        return '<div class="hday"><b>'+dstr(g.d)+'</b><span>Day result <span class="num'+sgn(g.net)+'">'+money(g.net)+'</span></span><span>Running total <span class="num'+sgn(g.run)+'">'+money(g.run)+'</span></span></div>'+
+          g.items.slice().reverse().map(function(e){return '<div class="hrow"><span class="tp">'+tr(e.type)+'</span><div class="tx"><b data-user-text>'+esc(e.title)+'</b><span class="sm">'+esc(e.calc)+'</span>'+(e.c==='repayments'?'':'<span class="sm">'+(e.person?'<span>Person</span>: <b data-user-text>'+esc(e.person)+'</b>':'Unassigned')+'</span>')+'</div><div class="rs num'+sgn(e.res)+'">'+(e.res<0?'-':'')+fmt(Math.abs(e.res))+'</div>'+delBtn(e.c,e.id)+'</div>'}).join('');
+      }).join('')+'</div>';
+  }
+
+  /* ---- render ---- */
+  function renderBody(){
+    if(tab==='summary'){$('#body').innerHTML=summaryHTML();localize($('#body'));return}
+    if(tab==='history'){$('#body').innerHTML='<div style="display:flex;flex-direction:column;gap:18px">'+historyHTML()+'</div>';localize($('#body'));return}
+    $('#body').innerHTML='<div style="display:flex;flex-direction:column;gap:18px">'+formHTML(tab)+'<div id="list">'+listHTML(tab)+'</div></div>';
+    localize($('#body'));
+    updatePreview();
+  }
+  function renderAll(){
+    renderFigures();
+    if(tab==='summary'||tab==='history')renderBody();else $('#list').innerHTML=listHTML(tab);
+    localize(document.querySelector('.wrap'));
+  }
+
+  /* ---- events ---- */
+  document.addEventListener('click',function(e){
+    var t=e.target.closest('button');if(!t)return;
+    if(t.id==='theme-toggle'){setTheme(theme==='dark'?'light':'dark');return}
+    if(t.dataset.repay){
+      var row=t.closest('.credit-row'),amount=parseFloat(row.querySelector('[data-repayment-amount]').value);
+      if(!Number.isFinite(amount)){toast('Enter an amount greater than zero.');return}
+      recordRepayment(t.dataset.buyer,amount);
+      return;
+    }
+    if(t.dataset.assign){
+      var row=t.closest('.assign-row'),person=row.querySelector('[data-owner-input]').value.trim();
+      if(!person){toast('Enter the person’s name.');return}
+      assignRecord(t.dataset.coll,t.dataset.id,person);
+      return;
+    }
+    if(t.dataset.delall){
+      if(pendingAll){pendingAll=false;delAll().then(function(ok){if(ok){toast('All history deleted');renderBody()}})}
+      else{pendingAll=true;pendingDel=null;renderBody()}
+      return;
+    }
+    if(t.dataset.cancel){pendingAll=false;pendingDel=null;renderBody();return}
+    if(t.dataset.p){period=t.dataset.p;pendingDel=null;pendingAll=false;document.querySelectorAll('#periods .chip').forEach(function(b){b.setAttribute('aria-pressed',b===t)});renderAll();return}
+    if(t.dataset.t){tab=t.dataset.t;pendingDel=null;pendingAll=false;document.querySelectorAll('#tabs .tab').forEach(function(b){b.setAttribute('aria-selected',b===t)});renderBody();return}
+    if(t.dataset.del){
+      var c=t.dataset.del,id=t.dataset.id;
+      if(pendingDel&&pendingDel.c===c&&pendingDel.id===id){pendingDel=null;del(c,id).then(function(ok){if(ok)toast('Deleted')});}
+      else{pendingDel={c:c,id:id};pendingAll=false;refreshList()}
+    }
+  });
+  document.addEventListener('change',function(e){
+    if(e.target.id==='language')setLanguage(e.target.value);
+    if(e.target.id==='f-credit'){
+      $('#credit-details').hidden=!e.target.checked;
+      updatePreview();
+    }
+  });
+  document.addEventListener('input',function(e){if(e.target.closest('#entryForm'))updatePreview()});
+  document.addEventListener('submit',function(e){
+    if(e.target.id!=='entryForm')return;
+    e.preventDefault();
+    var date=$('#f-date').value,person=$('#f-person').value.trim(),err='',doc=null,k=tab;
+    if(!date)err='Pick the date.';
+    else if(!person)err='Enter the person’s name.';
+    else if(k==='currency'){
+      var cur=$('#f-cur').value.trim().toUpperCase(),a=num('f-amt'),b=num('f-buy'),s=num('f-sell'),fe=num('f-fees');
+      if(!cur)err='Enter the currency, for example USD.';
+      else if(a<=0)err='Enter the amount you sold.';
+      else if(b<=0)err='Enter your buying rate.';
+      else if(s<=0)err='Enter your selling rate.';
+      else doc={id:uid(),date:date,person:person,cur:cur,amount:a,buy:b,sell:s,fees:fe};
+    }else if(k==='products'){
+      var nm=$('#f-name').value.trim(),q=1,c=num('f-cost'),pz=num('f-price');
+      var credit=$('#f-credit').checked,buyer=$('#f-buyer').value.trim(),paidNow=num('f-paid-now'),saleTotal=q*pz;
+      if(!nm)err='Enter the product name.';
+      else if(c<=0)err='Enter the cost price per item.';
+      else if(pz<=0)err='Enter the selling price per item.';
+      else if(credit&&!buyer)err='Enter buyer name.';
+      else if(credit&&paidNow<0)err='Paid amount cannot be negative.';
+      else if(credit&&paidNow>saleTotal)err='Paid amount cannot exceed sale total.';
+      else{
+        doc={id:uid(),date:date,person:person,name:nm,qty:q,cost:c,price:pz};
+        if(credit){doc.credit=true;doc.buyer=buyer;doc.paidNow=paidNow}
+      }
+    }else{
+      var am=num('f-exp');
+      if(am<=0)err='Enter the amount spent.';
+      else doc={id:uid(),date:date,person:person,cat:$('#f-cat').value,desc:$('#f-desc').value.trim(),amount:am};
+    }
+    $('#err').textContent=tr(err);
+    if(!doc)return;
+    save(k,doc).then(function(ok){
+      if(!ok)return;
+      toast('Saved');
+      var keepDate=date;renderBody();$('#f-date').value=keepDate;
+    });
+  });
+
+  /* ---- start ---- */
+  document.title=tr('HEEZA SYSTEM');
+  renderFigures();renderBody();localize(document.querySelector('.wrap'));
+  /* ---- XAMPP storage: talks to api.php (PHP + MySQL) ---- */
+  function makeStore(){
+    var API='api.php',subs={};
+    function req(url,opts){
+      return fetch(url,opts).then(function(r){
+        return r.text().then(function(t){
+          var j;try{j=JSON.parse(t)}catch(e){throw new Error('Server did not return data. Is Apache running and api.php in the same folder?')}
+          if(!r.ok||j.error)throw new Error(j.error||('HTTP '+r.status));
+          return j;
+        });
+      });
+    }
+    function snapOf(rows){return {docs:rows.map(function(r){return {id:r.id,data:function(){return r}}})}}
+    function pull(k){
+      var c=subs[k];if(!c)return Promise.resolve();
+      return req(API+'?c='+k).then(function(rows){
+        c.failed=false;
+        var sig=JSON.stringify(rows);
+        if(sig!==c.sig){c.sig=sig;c.ok(snapOf(rows))}
+      },function(){
+        if(!c.failed){c.failed=true;c.err()}
+      });
+    }
+    setInterval(function(){Object.keys(subs).forEach(pull)},5000);
+    return {collection:function(k){return {
+      doc:function(id){return {
+        set:function(doc){return req(API+'?c='+k+'&id='+encodeURIComponent(id),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(doc)}).then(function(){return pull(k)})},
+        delete:function(){return req(API+'?c='+k+'&id='+encodeURIComponent(id)+'&action=delete',{method:'POST'}).then(function(){return pull(k)})}
+      }},
+      onSnapshot:function(ok,err){subs[k]={ok:ok,err:err,sig:null,failed:false};pull(k)}
+    }}};
+  }
+  var timer,useP=Promise.resolve(makeStore());
+  useP.then(function(db){
+    if(!db){localMode=true;lsRead();loaded=true;renderAll();return}
+    store=db;
+    timer=setTimeout(function(){if(!loaded){var n=$('#note');n.hidden=false;n.textContent=tr('Your saved records cannot be reached yet. Check your connection.')}},10000);
+    STORAGE_COLL.forEach(function(k){
+      db.collection(k).onSnapshot(function(snap){
+        loaded=true;clearTimeout(timer);
+        data[k]=snap.docs.map(function(d){return Object.assign({},d.data(),{id:d.id})});
+        renderAll();
+      },function(){
+        loaded=true;clearTimeout(timer);renderAll();
+        var n=$('#note');n.hidden=false;n.textContent=tr('Saved records stopped updating. Reload the page to reconnect.');
+      });
+    });
+  }).catch(function(){localMode=true;lsRead();loaded=true;renderAll()});
+})();
+</script>
+</body>
+</html>
